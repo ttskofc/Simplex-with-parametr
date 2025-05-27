@@ -58,8 +58,36 @@ body {
 
 .card_bottom {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    gap: 30px;
 }
+
+.full-width{
+    width: fit-content;
+    margin: 0 auto;
+}
+
+#results-container{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+
+.interval-block{
+    background: #2a4e97c6;
+    padding: 10px;
+    /* max-width: 300px; */
+    /* width: 100%; */
+    border-radius: 10px;
+    color: aliceblue;
+    font-size: 20px;
+}
+
+.interval-block pre{
+    margin: 0 !important; 
+}
+
 
 h1 {
     font-size: 28px;
@@ -227,3 +255,5 @@ td {
     padding: 0;
     overflow: hidden;
 }
+
+

@@ -7,8 +7,8 @@ try:
 except:
     pass
 
+# инвертирует матрицу
 def invert_matrix(mat):
-    """возвращает обратную матрицу"""
     n = len(mat)
     aug = [row[:] + [Fraction(int(i == j)) for j in range(n)] for i, row in enumerate(mat)]
     for i in range(n):
@@ -32,56 +32,45 @@ def invert_matrix(mat):
     return inv
 
 class ParametricSimplex:
+    # инициализация объекта
     def __init__(self, A, b_prime, b_double, c):
-        # сохраняем данные как дроби
         self.orig_A = [[Fraction(x) for x in row] for row in A]
         self.orig_b_prime = [Fraction(x) for x in b_prime]
         self.orig_b_double = [Fraction(x) for x in b_double]
         self.orig_c = [Fraction(x) for x in c]
+        self._setup(self.orig_A, self.orig_b_prime, self.orig_b_double, self.orig_c)
 
-        self._setup(self.orig_A, self.orig_b_prime, self.orig_b_double, self.orig_c) #добавление базисных столбцов
-
+    # настройка задачи
     def _setup(self, A, b_prime, b_double, c):
-        """подготавливает расширенную матрицу, добавляет свободные переменные и начальный базис."""
         self.A = [row[:] for row in A]
         self.b_prime = b_prime[:]
         self.b_double = b_double[:]
         self.c = c[:]
-        self.m = len(self.A)                   # колво ограничений
-        self.n = len(self.A[0]) if self.m > 0 else 0  # колва переменных 
-        # Добавляем столбцы запасных переменных (единичная матрица m x m)
+        self.m = len(self.A)
+        self.n = len(self.A[0]) if self.m > 0 else 0
         for i in range(self.m):
             self.A[i].extend(Fraction(1) if j == i else Fraction(0) for j in range(self.m))
-        # Коэффициенты функции цели для запасных переменных = 0
         self.c.extend(Fraction(0) for _ in range(self.m))
         self.total_vars = self.n + self.m
-        # Изначальный базис: индексы запасных переменных
         self.basis = list(range(self.n, self.n + self.m))
         self.nonbasis = list(range(self.n))
-        # Вычисляем обратную матрицу базисной матрицы B
         self._update_B_inv()
 
+    # обновление обратной матрицы B
     def _update_B_inv(self):
-        """Вычисляет обратную матрицу текущей базисной подматрицы B."""
         B_cols = []
         for bi in self.basis:
             col = [self.A[i][bi] for i in range(self.m)]
             B_cols.append(col)
-        B = [list(row) for row in zip(*B_cols)]  # транспонируем список столбцов
+        B = [list(row) for row in zip(*B_cols)]
         self.B_inv = invert_matrix(B)
 
+    # симплекс-метод
     def _simplex(self, b_const):
-        """
-         симплекс-метод. 
-        """
         for _ in range(1000):
-            # Вычисляем текущее базисное решение x_B = B_inv * b_const
             xB = [sum(self.B_inv[i][k] * b_const[k] for k in range(self.m)) for i in range(self.m)]
-            # Коэффициенты ЦФ для базисных переменных
             cB = [self.c[j] for j in self.basis]
-            # Вычисляем вектор y = cB^T * B_inv
             y = [sum(cB[k] * self.B_inv[k][i] for k in range(self.m)) for i in range(self.m)]
-            # Выбираем входящую переменную (минимальный индекс с positive reduced cost)
             enter = None
             for j in sorted(self.nonbasis):
                 Aj = [self.A[i][j] for i in range(self.m)]
@@ -89,13 +78,10 @@ class ParametricSimplex:
                 if reduced > 0:
                     enter = j
                     break
-            # Оптимум достигнут, если не нашли входящую переменную
             if enter is None:
                 return
-            # Находим столбец B_inv * A[:, enter]
             Aj = [self.A[i][enter] for i in range(self.m)]
             col = [sum(self.B_inv[i][k] * Aj[k] for k in range(self.m)) for i in range(self.m)]
-            # Правило отношения: находим уходящую переменную
             leave_idx = None
             min_ratio = None
             for i in range(self.m):
@@ -106,21 +92,15 @@ class ParametricSimplex:
                         leave_idx = i
             if leave_idx is None:
                 raise RuntimeError("решение неограничено")
-            # Обмен базисов: входящая -> уходящая
             leaving_var = self.basis[leave_idx]
             self.basis[leave_idx] = enter
             self.nonbasis.remove(enter)
             self.nonbasis.append(leaving_var)
-            # Обновляем обратную матрицу
             self._update_B_inv()
         raise RuntimeError("более 1000итераций")
 
+    # вычисление допустимого интервала λ
     def _compute_interval(self):
-        """
-        Вычисляет допустимый интервал λ (L, U) для текущего базиса.
-        Возвращает (L, U, alpha, beta) или None, если базис недопустим.
-        """
-        # alpha = B_inv * b_prime, beta = B_inv * b_double
         alpha = [sum(self.B_inv[i][k] * self.b_prime[k] for k in range(self.m)) for i in range(self.m)]
         beta  = [sum(self.B_inv[i][k] * self.b_double[k] for k in range(self.m)) for i in range(self.m)]
         L, U = -math.inf, math.inf
@@ -134,28 +114,20 @@ class ParametricSimplex:
                 if val < U:
                     U = val
             else:
-                # Если beta[i] == 0, то alpha[i] должно быть >= 0
                 if alpha[i] < 0:
-                    return None  # Базис недопустим
-        # Проверяем корректность интервала (L ≤ U)
+                    return None
         if L > U:
             return None
         return (L, U, alpha, beta)
 
+    # выбор входящей переменной по двойственному правилу
     def _dual_enter(self, leave_idx):
-        """Для заданной уходящей строки выбирает входящую переменную."""
-        # Строка (B_inv * A)[leave_idx]
         row = [sum(self.B_inv[leave_idx][k] * self.A[k][j] for k in range(self.m)) for j in range(self.total_vars)]
-        # Кандидаты: небазисные с отрицательным элементом
         candidates = [j for j in self.nonbasis if row[j] < 0]
         return None if not candidates else min(candidates)
 
+    # поиск допустимого начального λ
     def _find_initial_lambda(self):
-        """
-        Находит допустимое значение λ для начального базиса.
-        Если не существует, выбрасывает понятное исключение.
-        
-        """
         lam_min, lam_max = -math.inf, math.inf
         for i in range(self.m):
             alpha_i = self.orig_b_prime[i]
@@ -169,7 +141,6 @@ class ParametricSimplex:
                     raise RuntimeError("Начальный базис не имеет допустимого λ (противоречие)")
         if lam_min > lam_max:
             raise RuntimeError("Невозможно найти допустимое λ для начального базиса")
-        # Если λ может быть любым, выбираем 0
         if lam_min == -math.inf and lam_max == math.inf:
             return Fraction(0)
         if lam_min == -math.inf:
@@ -178,28 +149,21 @@ class ParametricSimplex:
             return lam_min
         return Fraction(0) if lam_min <= 0 <= lam_max else lam_min
 
+    # решает задачу
     def solve(self):
-        """
-        Главный метод: решает параметрическую задачу.
-        Возвращает список кортежей (L, U, alpha, beta, basis) для каждого интервала λ.
-        """
-        # Находим начальное λ и решаем симплекс-метод для него
         lam0 = self._find_initial_lambda()
         b0 = [self.b_prime[i] + lam0 * self.b_double[i] for i in range(self.m)]
         self._simplex(b0)
 
         intervals = []
-        # Первый интервал для исходного базиса
         iv = self._compute_interval()
         if iv is None:
             return intervals
         L0, U0, alpha0, beta0 = iv
         intervals.append((L0, U0, alpha0, beta0, self.basis.copy()))
 
-        # Шаги по λ вправо (увеличение)
         currL, currU, currAlpha, currBeta = L0, U0, alpha0, beta0
         while currU != math.inf:
-            # Находим переменную, уходящую при λ = currU
             leave_idx = None
             for i in range(self.m):
                 if currBeta[i] < 0 and -currAlpha[i] / currBeta[i] == currU:
@@ -207,17 +171,14 @@ class ParametricSimplex:
                     break
             if leave_idx is None:
                 break
-            # Находим входящую по двойственному правилу
             enter = self._dual_enter(leave_idx)
             if enter is None:
                 break
-            # Обмен базисных переменных
             leaving_var = self.basis[leave_idx]
             self.basis[leave_idx] = enter
             self.nonbasis.remove(enter)
             self.nonbasis.append(leaving_var)
             self._update_B_inv()
-            # Новый интервал
             iv2 = self._compute_interval()
             if iv2 is None:
                 break
@@ -225,8 +186,6 @@ class ParametricSimplex:
             intervals.append((currU, U2, alpha2, beta2, self.basis.copy()))
             currL, currU, currAlpha, currBeta = L2, U2, alpha2, beta2
 
-        # Шаги по λ влево (уменьшение)
-        # Восстанавливаем исходный базис
         self._setup(self.orig_A, self.orig_b_prime, self.orig_b_double, self.orig_c)
         lam0 = self._find_initial_lambda()
         b0 = [self.b_prime[i] + lam0 * self.b_double[i] for i in range(self.m)]
@@ -261,70 +220,71 @@ class ParametricSimplex:
 
         return intervals
 
-# пример
-if __name__ == '__main__':
 
-    c = [5, 4, 4, -3, -3] 
-    A = [
-        [1, 0, 0, 1, -5],   
-        [1, 0, 1, 0, 10],
-        [5, 1, 0, 0, -3]    
-    ]
-    b_prime = [2, 70, 32]     
-    b_double = [-24, 24, -48]  
+# # пример
+# if __name__ == '__main__':
 
-    ps = ParametricSimplex(A, b_prime, b_double, c)
-    intervals = ps.solve()
+#     c = [5, 4, 4, -3, -3] 
+#     A = [
+#         [1, 0, 0, 1, -5],   
+#         [1, 0, 1, 0, 10],
+#         [5, 1, 0, 0, -3]    
+#     ]
+#     b_prime = [2, 70, 32]     
+#     b_double = [-24, 24, -48]  
 
-    if intervals:
-        # Проверка: нет решений до первого интервала
-        if intervals[0][0] != -math.inf:
-            print(f"[-\u221E, {intervals[0][0]}): решений нет\n")
+#     ps = ParametricSimplex(A, b_prime, b_double, c)
+#     intervals = ps.solve()
 
-        for (L, U, alpha, beta, basis) in intervals:
-            # Вычисляем коэффициенты функции цели: F = c0 + c1*λ
-            c0 = Fraction(0)
-            c1 = Fraction(0)
-            for i, var in enumerate(basis):
-                if var < len(ps.orig_c):
-                    c0 += ps.orig_c[var] * alpha[i]
-                    c1 += ps.orig_c[var] * beta[i]
-            # Формируем решение X
-            X_vals = []
+#     if intervals:
+#         # Проверка: нет решений до первого интервала
+#         if intervals[0][0] != -math.inf:
+#             print(f"[-\u221E, {intervals[0][0]}): решений нет\n")
 
-            for j in range(ps.total_vars):
-                if j in basis:
-                    idx = basis.index(j)
-                    a_j = alpha[idx]
-                    b_j = beta[idx]
-                else:
-                    a_j = Fraction(0)
-                    b_j = Fraction(0)
+#         for (L, U, alpha, beta, basis) in intervals:
+#             # Вычисляем коэффициенты функции цели: F = c0 + c1*λ
+#             c0 = Fraction(0)
+#             c1 = Fraction(0)
+#             for i, var in enumerate(basis):
+#                 if var < len(ps.orig_c):
+#                     c0 += ps.orig_c[var] * alpha[i]
+#                     c1 += ps.orig_c[var] * beta[i]
+#             # Формируем решение X
+#             X_vals = []
 
-                X_vals.append((a_j, b_j))  # сохрани числовое значение
+#             for j in range(ps.total_vars):
+#                 if j in basis:
+#                     idx = basis.index(j)
+#                     a_j = alpha[idx]
+#                     b_j = beta[idx]
+#                 else:
+#                     a_j = Fraction(0)
+#                     b_j = Fraction(0)
 
-            # Удалить последние 3 значения, где (a_j == 0 и b_j == 0)
-            zero_indices = [i for i in range(len(X_vals)-1, -1, -1) if X_vals[i] == (0, 0)][:3]
-            for i in sorted(zero_indices, reverse=True):
-                del X_vals[i]
+#                 X_vals.append((a_j, b_j))  # сохрани числовое значение
 
-            # Преобразовать обратно в строки
-            X_expr = []
-            for a_j, b_j in X_vals:
-                if b_j >= 0:
-                    X_expr.append(f"{a_j} + {b_j}*λ" if b_j != 0 else f"{a_j}")
-                else:
-                    X_expr.append(f"{a_j} - {-b_j}*λ")
+#             # Удалить последние 3 значения, где (a_j == 0 и b_j == 0)
+#             zero_indices = [i for i in range(len(X_vals)-1, -1, -1) if X_vals[i] == (0, 0)][:3]
+#             for i in sorted(zero_indices, reverse=True):
+#                 del X_vals[i]
+
+#             # Преобразовать обратно в строки
+#             X_expr = []
+#             for a_j, b_j in X_vals:
+#                 if b_j >= 0:
+#                     X_expr.append(f"{a_j} + {b_j}*λ" if b_j != 0 else f"{a_j}")
+#                 else:
+#                     X_expr.append(f"{a_j} - {-b_j}*λ")
 
 
-            # Строковые представления границ
-            L_str = "-\u221E" if L == -math.inf else str(L)
-            U_str = "\u221E" if U == math.inf else str(U)
+#             # Строковые представления границ
+#             L_str = "-\u221E" if L == -math.inf else str(L)
+#             U_str = "\u221E" if U == math.inf else str(U)
 
-            print(f"[{L_str}, {U_str}]")
-            print(f"F = {c0}" + (f" + {c1}*λ" if c1 >= 0 else f" - {-c1}*λ"))
-            print("X = [" + ", ".join(X_expr) + "]\n")
+#             print(f"[{L_str}, {U_str}]")
+#             print(f"F = {c0}" + (f" + {c1}*λ" if c1 >= 0 else f" - {-c1}*λ"))
+#             print("X = [" + ", ".join(X_expr) + "]\n")
 
-        # Проверка: нет решений после последнего интервала
-        if intervals[-1][1] != math.inf:
-            print(f"({intervals[-1][1]}, \u221E]: решений нет\n")
+#         # Проверка: нет решений после последнего интервала
+#         if intervals[-1][1] != math.inf:
+#             print(f"({intervals[-1][1]}, \u221E]: решений нет\n")

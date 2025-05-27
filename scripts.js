@@ -241,8 +241,7 @@ function updateMatrixSize() {
 
 async function submitMatrix() {
     const data = getMatrixData();
-    
-    
+
     try {
         const response = await fetch("http://localhost:8000/solve-assignment", {
             method: "POST",
@@ -253,43 +252,35 @@ async function submitMatrix() {
         });
 
         const result = await response.json();
-        
-        if (result.status === "success") {
-            displayResult(result.result);
+
+        if (result.intervals) {
+            displayResult(result.intervals);
         } else {
-            throw new Error(result.message || "Unknown error");
+            throw new Error("Неверный формат ответа от сервера");
         }
     } catch (error) {
         console.error("Ошибка:", error);
-        const outputDiv = document.getElementById("output");
-        outputDiv.innerHTML = `<div class="error-message">Ошибка: ${error.message}</div>`;
+        const resultsContainer = document.getElementById("results-container");
+        resultsContainer.innerHTML = `<div class="error-message">Ошибка: ${error.message}</div>`;
     }
 }
 
 
 
-function displayResult(result) {
-    const outputDiv = document.getElementById("output");
-    let html = '';
-    
-    result.forEach(interval => {
-        html += `
-            <div class="interval">
-                <h3>λ ∈ ${interval.lambda_range}</h3>
-                <p>F(λ) = ${interval.objective}</p>
-                <div class="variables">
-                    <span>X = [</span>
-                    ${interval.variables.map(v => `
-                        <span class="variable">${v}</span>
-                    `).join(', ')}
-                    <span>]</span>
-                </div>
-            </div>
-        `;
+
+
+function displayResult(intervals) {
+    const resultsContainer = document.getElementById("results-container");
+    resultsContainer.innerHTML = '';
+
+    intervals.forEach(interval => {
+        const div = document.createElement("div");
+        div.className = "interval-block";
+        div.innerHTML = `<pre>${interval.text}</pre>`;
+        resultsContainer.appendChild(div);
     });
-    
-    outputDiv.innerHTML = html;
 }
+
 
 
 // данные матрицы
