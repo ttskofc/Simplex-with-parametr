@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>ЗЛП с параметром</title>
+        <link rel="stylesheet" href="./styles.css" />
+    </head>
+    <body>
+        <div class="container">
+            <div class="card">
+                <h1>ЗЛП с параметром</h1>
+
+                <div class="controls">
+                    <div class="input-group">
+                        <label for="matrix-size-rows">Ограничений:</label>
+                        <input
+                            type="number"
+                            id="matrix-size-rows"
+                            min="1"
+                            max="10"
+                            value="3"
+                        />
+                        <label for="matrix-size-colums">Переменных:</label>
+                        <input
+                            type="number"
+                            id="matrix-size-columns"
+                            min="1"
+                            max="10"
+                            value="5"
+                        />
+                        <button id="update-size">Применить</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="matrix-container">
+                    <table id="cost-table"></table>
+                    <div class="matrix-container__table">
+                        <table id="matrix-table"></table>
+                        <table id="b-table"></table>
+                        <table id="b-shtr-table"></table>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="card" id="output">
+                <button id="submit-matrix" class="full-width">
+                    Отправить матрицу
+                </button>
+
+            </div>
+        </div>
+
+        <script src="./scripts.js"></script>
+    </body>
+</html>

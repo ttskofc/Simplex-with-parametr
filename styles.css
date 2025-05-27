@@ -1,0 +1,229 @@
+@import url("https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap");
+
+:root {
+    /* --primary-color: #cf733e; */
+    --primary-color: #2a4f97;
+
+    --secondary-color: rgba(120, 120, 128, 0.24);
+    --background-base: rgba(242, 242, 247, 0.8);
+    --text-primary: #000000;
+    --text-secondary: #636366;
+}
+
+.oswald-fg {
+    font-family: "Oswald";
+    font-optical-sizing: auto;
+    font-weight: 500;
+    font-style: normal;
+}
+
+body {
+    font-family: Oswald;
+    background: url("./MuchaTseBle.jpg") no-repeat center center fixed;
+    background-size: cover;
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.container {
+    width: 100%;
+    max-width: 700px;
+    margin-top: 30px;
+    background-color: rgba(255, 255, 255, 0.233);
+    border-radius: 14px;
+    padding-top: 20px;
+}
+
+.card {
+    overflow: auto;
+    background: rgb(255, 255, 255);
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+    transform: scale(0.95);
+}
+
+.card:hover {
+    /* background: rgba(255, 255, 255, 0.13); */
+    transform: scale(0.96);
+}
+
+.card_bottom {
+    display: flex;
+    justify-content: center;
+}
+
+h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    color: var(--text-primary);
+}
+
+.controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+label {
+    font-size: 17px;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+input[type="number"] {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid var(--primary-color);
+    border-radius: 5px;
+    padding: 12px 15px;
+    font-size: 17px;
+    color: var(--text-primary);
+    flex: 1;
+    transition: all 0.2s ease;
+    -moz-appearance: textfield;
+}
+
+input[type="number"]:focus {
+    /* outline: none; */
+    /* border-color: var(--primary-color); */
+    /* border-color: transparent; */
+    /* border: 1px solid rgb(255, 0, 0); */
+    background-color: #6363661b;
+    /* transform: scale(1.05); */
+    transition: 0.2s;
+    border-radius: 10px;
+}
+
+td:has(input:focus) {
+    /* scale: 1.05; */
+    border: none;
+    outline: #636366;
+}
+
+.matrix-input,
+.cost-input,
+.b-input,
+.b-shtr-input {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    text-align: center;
+    font-size: 20px;
+    background: rgba(255, 255, 255, 0.7);
+    transition: all 0.2s ease;
+}
+
+button {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-size: 17px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+}
+
+button:hover {
+    transform: translateY(-1px);
+}
+
+button:active {
+    transform: scale(1.03);
+}
+
+.matrix-container {
+    /* overflow-x: hidden; */
+    /* overflow: scroll; */
+    transform: translateX(10px);
+    margin: auto;
+    width: min-content;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px;
+}
+
+.matrix-container__table {
+    display: flex;
+    /* gap: 1.2rem; */
+}
+
+table {
+    border-collapse: separate;
+    border-spacing: 5px;
+    margin: 10px;
+}
+
+#cost-table {
+    position: relative;
+}
+
+#cost-table::before {
+    content: "C:";
+    position: absolute;
+    top: calc(50% - 20px);
+    left: -30px;
+    font-size: 30px;
+    font-weight: bold;
+    color: #333;
+}
+
+#matrix-table {
+    position: relative;
+}
+
+#matrix-table::before {
+    content: "A:";
+    position: absolute;
+    top: calc(50% - 20px);
+    left: -30px;
+    font-size: 30px;
+    font-weight: bold;
+    color: #333;
+}
+
+#b-table,
+#b-shtr-table {
+    position: relative;
+}
+
+#b-table::before,
+#b-shtr-table::before {
+    position: absolute;
+    top: -80px;
+    left: calc(50% - 10px);
+    font-size: 30px;
+    font-weight: bold;
+    color: #333;
+}
+
+#b-table::before {
+    content: "B:";
+}
+
+#b-shtr-table::before{
+    content: "B':";
+}
+
+
+td {
+    padding: 0;
+    overflow: hidden;
+}
