@@ -2,7 +2,7 @@
 
 :root {
     /* --primary-color: #cf733e; */
-    --primary-color: #2a4f97;
+    --primary-color: #1900a5c7;
 
     --secondary-color: rgba(120, 120, 128, 0.24);
     --background-base: rgba(242, 242, 247, 0.8);
@@ -19,7 +19,7 @@
 
 body {
     font-family: Oswald;
-    background: url("./MuchaTseBle.jpg") no-repeat center center fixed;
+    background: url("./3334896.jpg") no-repeat center center fixed;
     background-size: cover;
     margin: 0;
     padding: 20px;
@@ -75,7 +75,7 @@ body {
 
 
 .interval-block{
-    background: #2a4e97c6;
+    background: #220078ab;
     padding: 10px;
     /* max-width: 300px; */
     /* width: 100%; */

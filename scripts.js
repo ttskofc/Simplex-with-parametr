@@ -243,7 +243,7 @@ async function submitMatrix() {
     const data = getMatrixData();
 
     try {
-        const response = await fetch("http://localhost:8000/solve-assignment", {
+        const response = await fetch("https://simplex-with-parametr.onrender.com/solve-assignment", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
