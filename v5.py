@@ -1,11 +1,6 @@
 from fractions import Fraction
 import math
-import sys
 
-try:
-    sys.stdout.reconfigure(encoding='utf-8')
-except:
-    pass
 
 # инвертирует матрицу
 def invert_matrix(mat):
